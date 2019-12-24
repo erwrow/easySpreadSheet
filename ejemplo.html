@@ -1,0 +1,310 @@
+<html>
+	<head>
+		<style>
+			
+		</style>
+		<script>
+			var prefijoTabla = "prueba"
+			
+			var encabezado = [["encabezado1", "encabezado2", "encabezado3", "encabezado4", "encabezado5"]];
+			
+			var datos = [
+				{"prop1":"11", "prop2":"12", "prop3":"13", "prop4":"14", "prop5":"15"}, 
+				{"prop1":"21", "prop2":"22", "prop3":"23", "prop4":"24", "prop5":"25"}, 
+				{"prop1":"11", "prop2":"42", "prop3":"43", "prop4":"44", "prop5":"45"}, 
+				{"prop1":"31", "prop2":"32", "prop3":"33", "prop4":"34", "prop5":"35"}, 
+				{"prop1":"41", "prop2":"42", "prop3":"43", "prop4":"44", "prop5":"45"}, 
+				{"prop1":"51", "prop2":"52", "prop3":"53", "prop4":"54", "prop5":"55"}
+			];
+						
+			var propiedades = {
+				agregarClasesExternas:{
+					agregar:true,
+					tabla:{
+						table:["w3-table", "w3-striped", "w3-bordered", "w3-display-center"],
+						thead:["w3-theme"],
+						th:["w3-container"],
+						tdEncabezado:["w3-theme"],
+						td:["w3-hover-dark-gray"]
+					},
+					input:{
+						input:["w3-input"],
+						inputHead:["w3-input", "w3-theme"]
+					},
+					div:{
+						div:["w3-container", "w3-responsive"]
+					}
+				},
+				soloLectura:{
+					tabla:false,
+					cursor:false,
+					fila:{
+						soloLectura:false,
+						cursor:false,
+						fila:[]
+					},
+					columna:{
+						soloLectura:false,
+						cursor:false,
+						columna:[] //nombre de la variable de la columna
+					},	
+					coordenada:{
+						soloLectura:false,
+						cursor:false,
+						fila:[],
+						columna:[]
+					}
+				},
+				encabezado:{
+					fila:true, //el encabezado de las filas
+					columna:true //el encabezado de las columnas
+				},
+				ordenar:{
+					ordenar:false,
+					ascendente:false,
+					columna:""
+				},
+				filtros:{
+					filtrar:true,
+					filtro:[]
+				},
+				ocultarFila:{
+					ocultar:false,
+					fila:[]	//número de la fila
+				},
+				ocultarColumna:{
+					ocultar:false,
+					columna:[]	//número de la columna
+				},
+				agregarFilas:false,
+				agruparDatos:false
+			}
+			function cargaPagina()
+			{
+				var tabla = generarTablaEditable(prefijoTabla, encabezado, datos, propiedades);
+				document.getElementById(prefijoTabla).innerHTML = "";
+				document.getElementById(prefijoTabla).appendChild(tabla);
+			}
+						
+			function generarTablaEditable(prefijoId, head, body, propiedades)
+			{
+				var ordenar = 0;
+				var tabla = document.createElement("table");
+				var thead = document.createElement("thead");
+				var tbody = document.createElement("tbody");
+				
+				if(propiedades.agregarClasesExternas.agregar)
+				{
+					propiedades.agregarClasesExternas.tabla.table.forEach(function (clase) {tabla.classList.add(clase)});
+					propiedades.agregarClasesExternas.tabla.thead.forEach(function (clase) {thead.classList.add(clase)});
+				}
+				
+                tabla.border="1px solid black";
+				tabla.id = prefijoId + "-tabla";
+				thead.id = prefijoId + "-thead";
+				tbody.id = prefijoId + "-tbody";
+				
+				//thead
+				if(propiedades.encabezado.columna)
+				{
+					for(var i in head)
+					{
+						var columna = 0;
+						var tr = document.createElement("tr");
+						tr.id = prefijoId + "EncabezadoTr" + i;
+						if(propiedades.encabezado.fila)
+						{
+							var thNumero = document.createElement("th");
+							thNumero.innerHTML = "";
+							if(propiedades.agregarClasesExternas.agregar)
+							{
+								propiedades.agregarClasesExternas.tabla.th.forEach(function (clase) {thNumero.classList.add(clase)});
+							}
+							tr.appendChild(thNumero);
+						}
+						for(var x in head[i])
+						{
+							var th = document.createElement("th");
+							var div = document.createElement("div");
+							div.innerHTML = head[i][x];
+							div.id = prefijoId + "-" + i + "-" + x + "-th-" + columna;
+							div.onclick = function (){
+								if(propiedades.ordenar.columna === this.id.split("-")[4])
+								{
+									propiedades.ordenar.ascendente = !(propiedades.ordenar.ascendente);
+								}
+								else
+								{
+									propiedades.ordenar.ascendente = true;
+								}
+								propiedades.ordenar.columna = this.id.split("-")[4];
+								
+								var tabla = generarTablaEditable(prefijoId, head, body, propiedades);
+								document.getElementById(prefijoTabla).innerHTML = "";
+								document.getElementById(prefijoTabla).appendChild(tabla);
+							};
+							th.appendChild(div);
+							if(propiedades.filtros.filtrar)
+							{
+								propiedades.filtros.filtro.push({columna:columna, texto:""})
+								var input = document.createElement("input");
+								if(propiedades.agregarClasesExternas.agregar)
+								{
+									propiedades.agregarClasesExternas.input.inputHead.forEach(function (clase) {input.classList.add(clase)});
+								}
+								input.id = prefijoId + "-" + i + "-" + x + "-input";
+								input.defaultValue = propiedades.filtros.filtro[x].texto;
+								input.onchange = function (){
+									propiedades.filtros.filtro[this.id.split("-")[2]].texto = this.value;
+									var tabla = generarTablaEditable(prefijoTabla, encabezado, datos, propiedades);
+									document.getElementById(prefijoTabla).innerHTML = "";
+									document.getElementById(prefijoTabla).appendChild(tabla);
+								};
+								th.appendChild(input);
+							}
+							if(propiedades.ocultarColumna.ocultar && (propiedades.ocultarColumna.columna.indexOf(String(columna)) > -1))
+							{
+								th.style.display = "none";
+							}
+							tr.appendChild(th);
+							columna++;
+						}
+						thead.appendChild(tr);
+					}
+				}
+				//tbody
+				for(var i in body)
+				{
+					var columna = 0;
+					var tr = document.createElement("tr");
+					tr.id = prefijoId + "-" + i + "-tr";
+					
+					if(propiedades.ocultarFila.ocultar && (propiedades.ocultarFila.fila.indexOf(i) > -1))
+					{
+						tr.style.display = "none";
+					}
+					
+					if(propiedades.encabezado.fila)
+					{
+						var tdNumero = document.createElement("td");
+						if(propiedades.agregarClasesExternas.agregar)
+						{
+							propiedades.agregarClasesExternas.tabla.tdEncabezado.forEach(function (clase) {tdNumero.classList.add(clase)});
+						}
+						tdNumero.innerHTML = "<strong>" + (parseInt(i) + 1) + "</strong>";
+						tr.appendChild(tdNumero);
+					}
+					for(var x in body[i])
+					{
+						if(propiedades.ordenar.ordenar && (i === "0") && (columna === parseInt(propiedades.ordenar.columna)))
+						{
+							var temporal = [];
+							body.forEach(function(x, i){
+								if(propiedades.ocultarFila.fila.indexOf(String(i)))
+								{
+									temporal.push(x);
+								}	
+							});
+							if(propiedades.ordenar.ascendente)
+							{
+								temporal.sort(function(a,b) {return (isNaN(a) && isNaN(b))?((a[x] > b[x]) ? 1 : ((b[x] > a[x]) ? -1 : 0)):(a - b);} );
+							}
+							else
+							{
+								temporal.sort(function(a,b) {return (isNaN(a) && isNaN(b))?((a[x] < b[x]) ? 1 : ((b[x] < a[x]) ? -1 : 0)):(b - a);} );
+							}
+							for(var indice in propiedades.ocultarFila.fila)
+							{
+								temporal.splice(propiedades.ocultarFila.fila[indice], 0, body[propiedades.ocultarFila.fila[indice]]);
+							}
+							body = temporal;
+						}
+						var td = document.createElement("td");
+						var texto = body[i][x];
+						td.id = prefijoId + "-" + i + "-" + x + "-td";
+						td.innerHTML = texto;
+						td.onclick = function (){
+							var idPrefijo = this.id.split("-")[0];
+							var idI = this.id.split("-")[1];
+							var idX = this.id.split("-")[2];
+							var input = document.createElement("input");
+							
+							input.setAttribute("type", "text");
+							
+							input.defaultValue = this.innerHTML;
+							
+							this.innerHTML = "";
+							this.onclick = null;
+							
+							input.id = idPrefijo + "-" + idI + "-" + idX + "-input";
+							input.onchange = function(){
+								var id = this.id.split("-");
+								body[id[1]][id[2]] = this.value;
+								console.log(datos);
+								var tabla = generarTablaEditable(prefijoId, head, body, propiedades);
+								document.getElementById(prefijoTabla).innerHTML = "";
+								document.getElementById(prefijoTabla).appendChild(tabla);
+							}
+							if(propiedades.agregarClasesExternas.agregar)
+							{
+								propiedades.agregarClasesExternas.input.input.forEach(function (clase) {input.classList.add(clase)});
+							}
+							if(propiedades.soloLectura.tabla || (propiedades.soloLectura.fila.soloLectura && (propiedades.soloLectura.fila.fila.indexOf(i) > -1)) || (propiedades.soloLectura.columna.soloLectura && (propiedades.soloLectura.columna.columna.indexOf(String(columna)) > -1)) || (propiedades.soloLectura.coordenada.soloLectura && (propiedades.soloLectura.coordenada.fila.indexOf(i) > -1) && (propiedades.soloLectura.coordenada.columna.indexOf(String(columna)) > -1)))
+							{
+								input.readOnly = true;
+								if(propiedades.soloLectura.cursor || (propiedades.soloLectura.fila.cursor && (propiedades.soloLectura.fila.fila.indexOf(i) > -1)) || (propiedades.soloLectura.columna.cursor && (propiedades.soloLectura.columna.columna.indexOf(String(columna)) > -1)) || (propiedades.soloLectura.coordenada.cursor && (propiedades.soloLectura.coordenada.fila.indexOf(i) > -1) && (propiedades.soloLectura.coordenada.columna.indexOf(String(columna)) > -1)))
+								{
+									input.style.cursor = "not-allowed";
+									this.style.cursor = "not-allowed";
+								}
+							}
+							if(propiedades.agregarClasesExternas.agregar)
+							{
+								propiedades.agregarClasesExternas.tabla.td.forEach(function (clase) {td.classList.add(clase)});
+							}
+							this.appendChild(input);
+						}
+						
+						if(propiedades.filtros.filtrar)
+						{
+							for(var h in propiedades.filtros.filtro)
+							{
+								if((body[i][x] !== null) && (body[i][x].toString().indexOf(propiedades.filtros.filtro[h].texto) < 0) && (propiedades.filtros.filtro[h].columna == columna))
+								{
+									tr.style.display = "none";
+								}
+							}
+						}
+						
+						if(propiedades.ocultarColumna.ocultar && (propiedades.ocultarColumna.columna.indexOf(String(columna)) > -1))
+						{
+							td.style.display = "none";
+						}
+						tr.appendChild(td);
+						columna++;
+					}
+					tbody.appendChild(tr);
+				}
+				
+				tabla.appendChild(thead);
+				tabla.appendChild(tbody);
+				
+				var div = document.createElement("div");
+				if(propiedades.agregarClasesExternas.agregar)
+				{
+					propiedades.agregarClasesExternas.div.div.forEach(function (clase) {div.classList.add(clase)});
+				}
+				div.appendChild(tabla);
+				
+				return div;
+			}
+		</script>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+		<link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-black.css">
+	</head>
+	<body onload="cargaPagina()">
+		<div id="prueba" class="w3-responsive w3-card-4 w3-mobile w3-content">
+		</div>
+	</body>
+</html>
