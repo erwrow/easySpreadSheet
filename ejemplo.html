@@ -16,6 +16,8 @@
                 {"prop1":"41", "prop2":"42", "prop3":"43", "prop4":"44", "prop5":"45"},
                 {"prop1":"51", "prop2":"52", "prop3":"53", "prop4":"54", "prop5":"55"}
             ];
+			
+			var pie = [["pie1", "pie2", "pie3", "pie4", "pie5"]];
 
             var propiedades = {
                 agregarClasesExternas:{
@@ -23,6 +25,7 @@
                     table:{
                         table:["w3-table", "w3-striped", "w3-bordered", "w3-display-center"],
                         thead:["w3-theme"],
+						tfoot:["w3-theme"],
                         th:["w3-container"],
                         tdNumber:["w3-theme"],
                         td:["w3-hover-dark-gray"]
@@ -60,7 +63,8 @@
                 },
                 encabezado:{
                     fila:true, //el encabezado de las filas
-                    columna:true //el encabezado de las columnas
+                    columna:true, //el encabezado de las columnas
+					pie:true
                 },
                 ordenar:{
                     ordenar:false,
@@ -82,32 +86,39 @@
                 agregarFilas:false,
                 agruparDatos:false
             };
+
             function cargaPagina()
             {
-                var tabla = generarTablaEditable(prefijoTabla, encabezado, datos, propiedades);
+                var tabla = generarTablaEditable(prefijoTabla, encabezado, datos, pie, propiedades);
                 document.getElementById(prefijoTabla).innerHTML = "";
                 document.getElementById(prefijoTabla).appendChild(tabla);
             }
-                        
-            function generarTablaEditable(prefijoId, head, body, propiedades)
+
+            function generarTablaEditable(prefijoId, head, body, foot, propiedades)
             {
                 var ordenar = 0;
+				var divTabla = document.createElement("div");
                 var tabla = document.createElement("table");
                 var thead = document.createElement("thead");
                 var tbody = document.createElement("tbody");
+				var tfoot = document.createElement("tfoot");
                 var button = document.createElement("button");
-                
+
                 if(propiedades.agregarClasesExternas.agregar)
                 {
+					propiedades.agregarClasesExternas.div.div.forEach(function (clase) {divTabla.classList.add(clase);});
                     propiedades.agregarClasesExternas.table.table.forEach(function (clase) {tabla.classList.add(clase);});
                     propiedades.agregarClasesExternas.table.thead.forEach(function (clase) {thead.classList.add(clase);});
+					propiedades.agregarClasesExternas.button.button.forEach(function (clase) {button.classList.add(clase);});
                 }
-                
+
                 tabla.border="1px solid black";
+				divTabla.id = prefijoId + "-div";
                 tabla.id = prefijoId + "-tabla";
                 thead.id = prefijoId + "-thead";
                 tbody.id = prefijoId + "-tbody";
-                
+				button.id = prefijoTabla + "-button"
+
                 //thead
                 if(propiedades.encabezado.columna)
                 {
@@ -181,13 +192,13 @@
                 {
                     var columna = 0;
                     var tr = document.createElement("tr");
-                    tr.id = prefijoId + "-" + i + "-tr";
-                    
+                    tr.id = prefijoId + "-body-" + i + "-tr";
+
                     if(propiedades.ocultarFila.ocultar && (propiedades.ocultarFila.fila.indexOf(i) > -1))
                     {
                         tr.style.display = "none";
                     }
-                    
+
                     if(propiedades.encabezado.fila)
                     {
                         var tdNumero = document.createElement("td");
@@ -233,18 +244,18 @@
                             var idX = this.id.split("-")[2];
                             var input = document.createElement("input");
                             var td = this;
-                            
+
                             input.setAttribute("type", "text");
-                            
+
                             input.defaultValue = this.innerHTML;
-                            
+
                             this.innerHTML = "";
                             this.onclick = null;
-                            
+
                             input.id = idPrefijo + "-" + idI + "-" + idX + "-input";
-                            
+
                             input.autofocus = true;
-                            
+
                             input.onchange = function(){
                                 var id = this.id.split("-");
                                 body[id[1]][id[2]] = this.value;
@@ -254,7 +265,7 @@
                                 document.getElementById(prefijoTabla).appendChild(tabla);
                                 input.autofocus = false;
                             };
-                            
+
                             if(propiedades.agregarClasesExternas.agregar)
                             {
                                 propiedades.agregarClasesExternas.input.input.forEach(function (clase) {input.classList.add(clase)});
@@ -274,7 +285,7 @@
                             }
                             this.appendChild(input);
                         };
-                        
+
                         if(propiedades.filtros.filtrar)
                         {
                             for(var h in propiedades.filtros.filtro)
@@ -285,7 +296,7 @@
                                 }
                             }
                         }
-                        
+
                         if(propiedades.ocultarColumna.ocultar && (propiedades.ocultarColumna.columna.indexOf(String(columna)) > -1))
                         {
                             td.style.display = "none";
@@ -295,18 +306,52 @@
                     }
                     tbody.appendChild(tr);
                 }
-                
+				//tfoot
+				if(propiedades.encabezado.pie)
+				{
+					for(var i in foot)
+					{
+						var tr = document.createElement("tr");
+						
+						tr.id = prefijoId + "-foot-" + i + "-tr"
+						
+						if(propiedades.encabezado.fila)
+						{
+							var tdNumero = document.createElement("td");
+							if(propiedades.agregarClasesExternas.agregar)
+							{
+								propiedades.agregarClasesExternas.table.tdNumber.forEach(function (clase) {tdNumero.classList.add(clase);});
+							}
+							tdNumero.innerHTML = "";
+							tr.appendChild(tdNumero);
+						}
+						
+						for(var x in foot[i])
+						{
+							var td = document.createElement("td");
+							td.id = prefijoId + "-foot-" + i + "-" + x + "-td";
+							
+							td.innerHTML = foot[i][x];
+							
+							tr.appendChild(td);
+						}
+						
+						tfoot.appendChild(tr);
+					}
+				}
+
                 tabla.appendChild(thead);
                 tabla.appendChild(tbody);
-                
-                var div = document.createElement("div");
-                if(propiedades.agregarClasesExternas.agregar)
-                {
-                    propiedades.agregarClasesExternas.div.div.forEach(function (clase) {div.classList.add(clase);});
-                }
-                div.appendChild(tabla);
-                
-                return div;
+				tabla.appendChild(tfoot);
+
+				divTabla.appendChild(tabla);
+
+				if(propiedades.agregarFilas)
+				{
+					divTabla.appendChild(button);
+				}
+
+                return divTabla;
             }
 		</script>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
